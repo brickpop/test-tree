@@ -26,7 +26,7 @@ jobs:
              gzip test-tree-darwin-aarch64 && \
              gzip test-tree-linux-x86_64 && \
              gzip test-tree-linux-aarch64 && \
-             gzip test-tree-win-x86_64
+             zip test-tree-win-x86_64.zip test-tree-win-x86_64
 
       - name: version
         run: echo "::set-output name=version::$(./bin/azblogfilter --version)"
