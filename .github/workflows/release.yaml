@@ -1,7 +1,12 @@
 name: Release
 
-on: push
-
+on:
+  push:
+    tags:
+      - 'v*'
+      
+permissions:
+  contents: write
 env:
   SCRIPT_URL: https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
 
@@ -29,63 +34,14 @@ jobs:
           gzip test-tree-linux-aarch64 &&
           zip test-tree-win-x86_64.exe.zip test-tree-win-x86_64.exe
 
-      - name: version
-        run: git tag --points-at HEAD
-        id: version
-      - name: release
-        uses: actions/create-release@v1
-        id: create_release
+      - name: Release with Notes
+        uses: softprops/action-gh-release@v1
         with:
-          draft: false
-          prerelease: false
-          release_name: ${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref }}
-          body_path: CHANGELOG.md
+          files: |
+            test-tree-darwin-x86_64.gz
+            test-tree-darwin-aarch64.gz
+            test-tree-linux-x86_64.gz
+            test-tree-linux-aarch64.gz
+            test-tree-win-x86_64.exe.zip
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: upload darwin aarch64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./test-tree-darwin-aarch64.gz
-          asset_name: test-tree-darwin-aarch64.gz
-          asset_content_type: application/gzip
-      - name: upload darwin x86_64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./test-tree-darwin-x86_64.gz
-          asset_name: test-tree-darwin-x86_64.gz
-          asset_content_type: application/gzip
-      - name: upload linux x86_64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./test-tree-linux-x86_64.gz
-          asset_name: test-tree-linux-x86_64.gz
-          asset_content_type: application/gzip
-      - name: upload linux aarch64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./test-tree-linux-aarch64.gz
-          asset_name: test-tree-linux-aarch64.gz
-          asset_content_type: application/gzip
-      - name: upload windows artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./test-tree-win-x86_64.gz
-          asset_name: test-tree-win-x86_64.gz
-          asset_content_type: application/zip
