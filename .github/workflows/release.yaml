@@ -1,0 +1,90 @@
+name: Release
+
+on: push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run test
+        run: deno test --allow-all
+      - name: Build test-tree
+        run: deno compile --target "aarch64-apple-darwin" -o "test-tree-darwin-aarch64" $(SCRIPT_URL) && \
+             deno compile --target "x86_64-apple-darwin" -o "test-tree-darwin-x86_64" $(SCRIPT_URL) && \
+             deno compile --target "x86_64-unknown-linux-gnu" -o "test-tree-linux-x86_64" $(SCRIPT_URL) && \
+             deno compile --target "aarch64-unknown-linux-gnu" -o "test-tree-linux-aarch64" $(SCRIPT_URL) && \
+             deno compile --target "x86_64-pc-windows-msvc" -o "test-tree-win-x86_64" $(SCRIPT_URL) && \
+             gzip test-tree-darwin-x86_64 && \
+             gzip test-tree-darwin-aarch64 && \
+             gzip test-tree-linux-x86_64 && \
+             gzip test-tree-linux-aarch64 && \
+             gzip test-tree-win-x86_64
+
+      - name: version
+        run: echo "::set-output name=version::$(./bin/azblogfilter --version)"
+        id: version
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: upload darwin aarch64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./test-tree-darwin-aarch64.gz
+          asset_name: test-tree-darwin-aarch64.gz
+          asset_content_type: application/gzip
+      - name: upload darwin x86_64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./test-tree-darwin-x86_64.gz
+          asset_name: test-tree-darwin-x86_64.gz
+          asset_content_type: application/gzip
+      - name: upload linux x86_64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./test-tree-linux-x86_64.gz
+          asset_name: test-tree-linux-x86_64.gz
+          asset_content_type: application/gzip
+      - name: upload linux aarch64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./test-tree-linux-aarch64.gz
+          asset_name: test-tree-linux-aarch64.gz
+          asset_content_type: application/gzip
+      - name: upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./test-tree-win-x86_64.gz
+          asset_name: test-tree-win-x86_64.gz
+          asset_content_type: application/zip

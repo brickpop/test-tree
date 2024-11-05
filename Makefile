@@ -2,10 +2,11 @@
 
 SOLIDITY_VERSION=0.8.17
 TEST_TREE_MARKDOWN=TEST_TREE.md
-SOURCE_FILES=$(wildcard test/*.t.yaml test/integration/*.t.yaml)
+SOURCE_FILES=$(wildcard ./**/*.t.yaml)
 TREE_FILES = $(SOURCE_FILES:.t.yaml=.tree)
 TARGET_TEST_FILES = $(SOURCE_FILES:.tree=.t.sol)
-MAKE_TEST_TREE=deno run ./test/script/make-test-tree.ts
+SCRIPT_URL=https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
+TEST_TREE_CMD=deno run $(SCRIPT_URL)
 MAKEFILE=Makefile
 
 .PHONY: help
@@ -14,9 +15,9 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE) \
 	   | sed -n 's/^\(.*\): \(.*\)##\(.*\)/- make \1  \3/p'
 
-all: sync markdown ##      Builds all tree files and updates the test tree markdown
+all: sync markdown ##       Builds all tree files and updates the test tree markdown
 
-sync: $(TREE_FILES) ##     Scaffold or sync tree files into solidity tests
+sync: $(TREE_FILES) ##      Scaffold or sync tree files into solidity tests
 	@for file in $^; do \
 		if [ ! -f $${file%.tree}.t.sol ]; then \
 			echo "[Scaffold]   $${file%.tree}.t.sol" ; \
@@ -27,10 +28,14 @@ sync: $(TREE_FILES) ##     Scaffold or sync tree files into solidity tests
 		fi \
 	done
 
-check: $(TREE_FILES) ##    Checks if solidity files are out of sync
+check: $(TREE_FILES) ##     Checks if solidity files are out of sync
 	bulloak check $^
 
-markdown: $(TEST_TREE_MARKDOWN) ## Generates a markdown file with the test definitions rendered as a tree
+markdown: $(TEST_TREE_MARKDOWN) ##  Generates a markdown file with the test definitions rendered as a tree
+
+.PHONY: test-tree
+test-tree: ## Compile the tree generator as a local binary
+	deno compile -o $@ $(SCRIPT_URL)
 
 # Internal targets
 
@@ -56,17 +61,18 @@ $(TREE_FILES): $(SOURCE_FILES)
 %.tree: %.t.yaml
 	@for file in $^; do \
 	  echo "[Convert]    $$file -> $${file%.t.yaml}.tree" ; \
-		cat $$file | $(MAKE_TEST_TREE) > $${file%.t.yaml}.tree ; \
+		cat $$file | $(TEST_TREE_CMD) > $${file%.t.yaml}.tree ; \
 	done
 
 # Global
 
 .PHONY: init
-init: ##     Check the dependencies and prompt to install if needed
+init: ##      Check the dependencies and prompt to install if needed
 	@which deno > /dev/null && echo "Deno is available" || echo "Install Deno:  curl -fsSL https://deno.land/install.sh | sh"
 	@which bulloak > /dev/null && echo "bulloak is available" || echo "Install bulloak:  cargo install bulloak"
 
 .PHONY: clean
-clean: ##    Clean the intermediary tree files
+clean: ##     Clean the intermediary tree files
 	rm -f $(TREE_FILES)
 	rm -f $(TEST_TREE_MARKDOWN)
+	rm -f ./test-tree
