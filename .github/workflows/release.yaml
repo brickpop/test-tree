@@ -2,12 +2,12 @@ name: Release
 
 on: push
 
+env:
+  SCRIPT_URL: https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
+
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v2
@@ -17,19 +17,20 @@ jobs:
       - name: Run test
         run: deno test --allow-all
       - name: Build test-tree
-        run: deno compile --target "aarch64-apple-darwin" -o "test-tree-darwin-aarch64" $(SCRIPT_URL) && \
-             deno compile --target "x86_64-apple-darwin" -o "test-tree-darwin-x86_64" $(SCRIPT_URL) && \
-             deno compile --target "x86_64-unknown-linux-gnu" -o "test-tree-linux-x86_64" $(SCRIPT_URL) && \
-             deno compile --target "aarch64-unknown-linux-gnu" -o "test-tree-linux-aarch64" $(SCRIPT_URL) && \
-             deno compile --target "x86_64-pc-windows-msvc" -o "test-tree-win-x86_64" $(SCRIPT_URL) && \
-             gzip test-tree-darwin-x86_64 && \
-             gzip test-tree-darwin-aarch64 && \
-             gzip test-tree-linux-x86_64 && \
-             gzip test-tree-linux-aarch64 && \
-             zip test-tree-win-x86_64.zip test-tree-win-x86_64
+        run: >
+          deno compile --target "aarch64-apple-darwin" -o "test-tree-darwin-aarch64" $SCRIPT_URL &&
+          deno compile --target "x86_64-apple-darwin" -o "test-tree-darwin-x86_64" $SCRIPT_URL &&
+          deno compile --target "x86_64-unknown-linux-gnu" -o "test-tree-linux-x86_64" $SCRIPT_URL &&
+          deno compile --target "aarch64-unknown-linux-gnu" -o "test-tree-linux-aarch64" $SCRIPT_URL &&
+          deno compile --target "x86_64-pc-windows-msvc" -o "test-tree-win-x86_64" $SCRIPT_URL &&
+          gzip test-tree-darwin-x86_64 &&
+          gzip test-tree-darwin-aarch64 &&
+          gzip test-tree-linux-x86_64 &&
+          gzip test-tree-linux-aarch64 &&
+          zip test-tree-win-x86_64.exe.zip test-tree-win-x86_64.exe
 
       - name: version
-        run: echo "::set-output name=version::$(./bin/azblogfilter --version)"
+        run: git tag --points-at HEAD
         id: version
       - name: release
         uses: actions/create-release@v1
