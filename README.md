@@ -1,6 +1,8 @@
 # Test tree
 
-A simple script to describe tests in YAML and get visual tree representations as well as solicity test placeholders using [bulloak](https://github.com/alexfertel/bulloak).
+Test tree allows you to define test outcomes in YAML and get visual tree representations for technical and non technical people. This tool is very useful for reasonably complex projects where keeping track of all the features and edge cases by just reading the code becomes unviable.
+
+Use the generated `*.tree` files to generate solidity test placeholders using [bulloak](https://github.com/alexfertel/bulloak).
 
 ## Usage
 
@@ -41,23 +43,25 @@ MultisigTest:
 
 ## Generate a tree file
 
+Then, pipe its contents to `test-tree`:
+
+### Using the script locally
+
 ```sh
 $ cat example/my-contract.t.yaml | deno run main.ts
-# or
+```
+
+### Running the script remotely
+
+```sh
 $ cat example/my-contract.t.yaml | deno run https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
 ```
 
-Or using a locally compiled binary
+### Using a compiled binary
 
 ```sh
-$ deno compile "https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts"
+$ deno compile https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
 $ cat example/my-contract.t.yaml | ./test-tree
-```
-
-Then, pipe its contents to `test-tree`:
-
-```sh
-$ cat example/my-contract.t.yaml | deno run main.ts
 ```
 
 The final output will look like a human readable tree:
@@ -65,7 +69,7 @@ The final output will look like a human readable tree:
 ```
 # MyTest.tree
 
-EmergencyMultisigTest
+MultisigTest
 ├── Given proposal exists // Comment here
 │   ├── Given proposal is in the last stage
 │   │   ├── When proposal can advance
@@ -73,16 +77,16 @@ EmergencyMultisigTest
 │   │   └── When proposal cannot advance
 │   │       └── It Should return false
 │   └── When proposal is not in the last stage
-│       ├── It should do A // Careful here
+│       ├── It should do A // This is an important remark
 │       ├── It should do B
 │       └── It should do C
-└── When proposal doesn't exist // Testing edge cases here
+└── When proposal doesnt exist // Testing edge cases here
     └── It should revert
 ```
 
-## Using the Makefile for a simpler flow
+## Using the Makefile to automate the whole flow
 
-Copy [Makefile](./Makefile) to your code:
+Copy [Makefile](./Makefile) to your Foundry project:
 
 ```sh
 curl "https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/Makefile" > Makefile
@@ -101,3 +105,7 @@ Available targets:
 - make init        Check the dependencies and prompt to install if needed
 - make clean       Clean the intermediary tree files
 ```
+
+## Example project
+
+See [example-project](./example-project/) for a working example.

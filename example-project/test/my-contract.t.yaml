@@ -1,0 +1,27 @@
+MultisigTest:
+- given: proposal exists
+  comment: Comment here
+  and: 
+  - given: proposal is in the last stage
+    and:
+
+    - when: proposal can advance
+      then:
+      - it: Should return true
+
+    - when: proposal cannot advance
+      then:
+      - it: Should return false
+
+  - when: proposal is not in the last stage
+    then:
+    - it: should do A
+      comment: This is an important remark
+    - it: should do B
+    - it: should do C
+
+- when: proposal doesn't exist
+  comment: Testing edge cases here
+  then:
+  - it: should revert
+  

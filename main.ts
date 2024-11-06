@@ -4,10 +4,13 @@ import { readStdinText } from "./lib/util.ts";
 
 async function main() {
   const yamlDefinition = await readStdinText();
-  const root = parseDefinition(yamlDefinition);
-  const tree = renderAsMarkdown(root);
-
+  const tree = processDefinition(yamlDefinition);
   Deno.stdout.write(new TextEncoder().encode(tree));
+}
+
+export function processDefinition(yaml: string): string {
+  const root = parseDefinition(yaml);
+  return renderAsMarkdown(root);
 }
 
 if (import.meta.main) {
