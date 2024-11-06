@@ -4,11 +4,9 @@ Test tree allows you to define test outcomes in YAML and get visual tree represe
 
 Use the generated `*.tree` files to generate solidity test placeholders using [bulloak](https://github.com/alexfertel/bulloak).
 
-## Usage
+## Getting started
 
-Tests can be described using yaml files. They will be automatically transformed into solidity test files with [bulloak](https://github.com/alexfertel/bulloak).
-
-Create a file with `.t.yaml` extension within the `test` folder and describe a hierarchy of test cases:
+Create a file with `.t.yaml` extension within the `test/` folder and describe a hierarchy of test cases using `when`, `given`, `it`, `and` and `then`:
 
 ```yaml
 # MyTest.t.yaml
@@ -41,23 +39,23 @@ MultisigTest:
   - it: should revert
 ```
 
-## Generate a tree file
+### Generate a tree file
 
-Then, pipe its contents to `test-tree`:
+Then, pipe the file's contents to `test-tree`:
 
-### Using the script locally
+#### Using the script locally
 
 ```sh
 $ cat example/my-contract.t.yaml | deno run main.ts
 ```
 
-### Running the script remotely
+#### Running the script remotely
 
 ```sh
 $ cat example/my-contract.t.yaml | deno run https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
 ```
 
-### Using a compiled binary
+#### Using a compiled binary
 
 ```sh
 $ deno compile https://raw.githubusercontent.com/brickpop/test-tree/refs/heads/main/main.ts
